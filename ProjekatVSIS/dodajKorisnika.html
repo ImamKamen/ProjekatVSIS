@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="apitoken" content="2ptg2MzaO1Aa6p1ud6Ne3HNagileDDMFSIq7Jjj1FdTYWZTHKZjKJrS78KasSKWMLLFLPRDOqwxSlw3WGXKO1fB13G">
+	<title>Administrator</title>
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+	<script>
+		$(function(){
+			$("#greska").hide();
+			$("#lokacijaPolje").hide();
+
+			let nizUloga;
+			let nizLokacija;
+
+			var settings2 = {
+			  "url": "https://vsis.mef.edu.rs/projekat/ulaznice/public_html/api/uloga?apitoken=" + $('meta[name="apitoken"]').attr('content'),
+			  "method": "GET",
+			  "timeout": 0,
+			  "headers": {
+			    "Accept": "application/json",
+			    "Authorization": "Bearer " + window.localStorage.getItem("token"),
+			  },
+			};
+
+			$.ajax(settings2).done(function (response) {
+			  console.log(response);
+			  nizUloga = response;
+			  let uloge = $("#uloga");
+			  response.forEach((element)=>{
+				uloge.append("<option value='" + element.id + "'>" + element.naziv +"</option>")
+			  });
+			});
+
+			var settings3 = {
+			  "url": "https://vsis.mef.edu.rs/projekat/ulaznice/public_html/api/lokacija?apitoken=" + $('meta[name="apitoken"]').attr('content'),
+			  "method": "GET",
+			  "timeout": 0,
+			  "headers": {
+			    "Accept": "application/json",
+			    "Authorization": "Bearer " + window.localStorage.getItem("token"),
+			  },
+			};
+
+			$.ajax(settings3).done(function (response) {
+			  console.log(response);
+			  nizLokacija = response;
+			  let lokacije = $("#lokacija");
+			  response.forEach((element)=>{
+				lokacije.append("<option value='" + element.id + "'>" + element.naziv +"</option>")
+			  });
+			});
+
+			$('#registerForma').on('submit', function(e){
+				e.preventDefault();
+
+				if($("#email").val().length === 0){
+					$("#email").css('outline', 'solid 3px orange');
+					$("#upozEmail").html("Niste uneli email");
+				}
+				else{
+					let lokacijaPuna = nizLokacija.find((lokacija) => lokacija.id == unetaLokacija);
+					let lokacijaKratka = {
+						"id": lokacijaPuna.id,
+						"naziv": lokacijaPuna.naziv,
+						"grad": lokacijaPuna.grad,
+						"adresa": lokacijaPuna.adresa,
+				        "opis": lokacijaPuna.opis,
+				        "radnoVreme": lokacijaPuna.radnoVreme,
+				        "readOnly": true,
+					};
+					unetaUloga = $("#uloga").val();
+					unetaLokacija = $("#lokacija").val();
+					var form = new FormData();
+					form.append("name", $("#ime").val());
+					form.append("email", $("#email").val());
+					form.append("phone", $("#telefon").val());
+					form.append("password", $("#lozinka").val());
+					form.append("userRoleId", nizUloga.find((uloga) => uloga.id == unetaUloga));
+					form.append("locationId", lokacijaKratka);
+					form.append("apitoken", $('meta[name="apitoken"]').attr('content'));
+
+					var settings = {
+					  "url": "https://vsis.mef.edu.rs/projekat/ulaznice/public_html/api/korisnik",
+					  "method": "POST",
+					  "timeout": 0,
+					  "headers": {
+					    "Accept": "application/json",
+					    "Authorization": "Bearer " + window.localStorage.getItem("token"),
+					  },
+					  "processData": false,
+					  "mimeType": "multipart/form-data",
+					  "contentType": false,
+					  "data": form
+					};
+
+					$.ajax(settings).done(function (response) {
+					  console.log(response);
+					  window.location.assign("listaKorisnika.html");
+					});
+
+					$.ajax(settings).fail(function (response) {
+					  console.log(response.responseText);
+					  let odgovor = $.parseJSON(response.responseText);
+					  $("#greska").show();
+					  $("#greska").html(odgovor.error);
+					  $("#email").val("");
+					});
+				}
+			});
+
+			$("#ime").on("blur", function(e){
+				let provera = /^([A-Z]|[ЉЊЕРТЗУИОПШЂАСДФГХЈКЛЧЋЖЏЦВБНМ])([a-z]|[љњертзуиопшђасдфгхјклчћжџцвбнм]){1,50}([\- ]([A-Z]|[ЉЊЕРТЗУИОПШЂАСДФГХЈКЛЧЋЖЏЦВБНМ])([a-z]|[љњертзуиопшђасдфгхјклчћжџцвбнм]){1,50})+$/.test($(this).val());
+				if(!provera || $(this).val().length > 180){
+					$(this).css('outline', 'solid 3px orange');
+					$("#upozIme").html("Ime i prezime nije pravilno napisano");
+				}
+				else{
+					$(this).css('outline', 'none');
+					$("#upozIme").html("");
+				}
+			});
+
+			$("#telefon").on("blur", function(e){
+				let provera = /^[+][1-9][0-9]{7,12}$/.test($(this).val());
+				if(!provera){
+					$(this).css('outline', 'solid 3px orange');
+					$("#upozTelefon").html("Telefon nije ispravan");
+				}
+				else{
+					$(this).css('outline', 'none');
+					$("#upozTelefon").html("");
+				}
+			});
+
+			$("#lozinka").on("blur", function(e){
+				let provera = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*\W).{6,}$/.test($(this).val());
+				if(!provera){
+					$(this).css('outline', 'solid 3px orange');
+					$("#upozLozinka").html("Lozinka nije dovoljno jaka");
+				}
+				else{
+					$(this).css('outline', 'none');
+					$("#upozLozinka").html("");
+				}
+			});
+
+			$("#lozinkaPonovo").on("blur", function(e){
+				if($(this).val() !== $("#lozinka").val()){
+					$(this).css('outline', 'solid 3px orange');
+					$("#upozLozinkaPon").html("Lozinke se ne poklapaju");
+				}
+				else{
+					$(this).css('outline', 'none');
+					$("#upozLozinkaPon").html("");
+				}
+			});
+
+			$("#email").on("blur", function(e){
+				if($(this).val().length > 0){
+					$(this).css('outline', 'none');
+					$("#upozEmail").html("");
+				}
+			});
+
+			$("#uloga").on("change", function(e){
+				if($(this).val() == 2){
+					$("#lokacijaPolje").show();
+				}
+				else{
+					$("#lokacijaPolje").hide();
+				}
+			});
+		});
+	</script>
+	<link rel="stylesheet" href="prijava.css">
+</head>
+<body>
+	<form method="post" id="registerForma">
+		<label>Ovde uneti ime i prezime</label><br>
+		<input type="text" name="ime" id="ime" required>
+		<p id="upozIme" class="upozorenje"></p>
+		<label>Ovde uneti email</label><br>
+		<input type="email" name="email" id="email">
+		<p id="upozEmail" class="upozorenje"></p>
+		<label>Ovde uneti telefon</label><br>
+		<input type="tel" name="telefon" id="telefon">
+		<p id="upozTelefon" class="upozorenje"></p>
+		<label>Ovde uneti lozinku</label><br>
+		<input type="password" name="lozinka" id="lozinka" required>
+		<p id="upozLozinka" class="upozorenje"></p>
+		<label>Ovde uneti ponovljenu lozinku</label><br>
+		<input type="password" name="lozinkaPonovo" id="lozinkaPonovo" required>
+		<p id="upozLozinkaPon" class="upozorenje"></p>
+		<p>
+		<label>Odaberite ulogu</label><br>
+		<select id="uloga" required></select>
+		</p>
+		<p id="lokacijaPolje">
+		<label>Odaberite lokaciju</label><br>
+		<select id="lokacija"></select>
+		</p>
+		<input type="submit" value="Registruj se">
+		<p id="greska"></p>
+	</form>
+</body>
+</html>

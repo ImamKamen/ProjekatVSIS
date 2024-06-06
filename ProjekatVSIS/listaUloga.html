@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="apitoken" content="2ptg2MzaO1Aa6p1ud6Ne3HNagileDDMFSIq7Jjj1FdTYWZTHKZjKJrS78KasSKWMLLFLPRDOqwxSlw3WGXKO1fB13G">
+	<title>Lista Uloga</title>
+</head>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+	<script>
+		$(function(){
+			var settings = {
+			  "url": "https://vsis.mef.edu.rs/projekat/ulaznice/public_html/api/uloga?apitoken=" + $('meta[name="apitoken"]').attr('content'),
+			  "method": "GET",
+			  "timeout": 0,
+			  "headers": {
+			    "Accept": "application/json",
+			    "Authorization": "Bearer " + window.localStorage.getItem("token"),
+			  },
+			};
+
+			$.ajax(settings).done(function (response) {
+			  console.log(response);
+			  let tbody = $("tbody");
+			  let korisnici = null;
+			  var settings2 = {
+				  "url": "https://vsis.mef.edu.rs/projekat/ulaznice/public_html/api/korisnik?apitoken=" + $('meta[name="apitoken"]').attr('content'),
+				  "method": "GET",
+				  "timeout": 0,
+				  "headers": {
+				    "Authorization": "Bearer " + window.localStorage.getItem("token"),
+				  },
+				};
+
+				$.ajax(settings2).done(function (response2) {
+				  console.log(response2);
+				  korisnici = response2;
+				  response.forEach((element)=>{
+				  	let br = 0;
+				  	tr = $("<tr></tr>");
+				  	korisnici.forEach((element2) => { if(element2.uloga.id === element.id){br++}});
+				  	tr.append("<td>" + element.id + "</td><td>" + element.naziv + "</td><td>" + (element.opis?element.opis:"/") + "</td>");
+				  	let broj = $("<td></td>");
+				  	broj.on("click", function(e){
+			  			window.localStorage.setItem("korisnici", element.id);
+			  			window.location.assign("listaKorisnika.html");
+			  		});
+			  		broj.css("cursor", "pointer");
+				  	broj.append(br);
+				  	tr.append(broj);
+				  	tbody.append(tr);
+
+			  });
+			});
+  
+			});
+		});
+	</script>
+	<link rel="stylesheet" href="liste.css">
+<body>
+	<table>
+		<thead>
+			<tr>
+				<th>id</th>
+				<th>Naziv</th>
+				<th>Opis</th>
+				<th>Broj korisnika</th>
+			</tr>
+		</thead>
+		<tbody>
+		</tbody>
+	</table>
+</body>
+</html>

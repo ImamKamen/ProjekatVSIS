@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="apitoken" content="2ptg2MzaO1Aa6p1ud6Ne3HNagileDDMFSIq7Jjj1FdTYWZTHKZjKJrS78KasSKWMLLFLPRDOqwxSlw3WGXKO1fB13G">
+	<title>Lokacija Izmena</title>
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+	<script>
+		$(function(){
+			let apitoken = "2ptg2MzaO1Aa6p1ud6Ne3HNagileDDMFSIq7Jjj1FdTYWZTHKZjKJrS78KasSKWMLLFLPRDOqwxSlw3WGXKO1fB13G";
+
+			var settings2 = {
+			  "url": "https://vsis.mef.edu.rs/projekat/ulaznice/public_html/api/lokacija/" + window.localStorage.getItem("lokacija") + "?apitoken=" + $('meta[name="apitoken"]').attr('content'),
+			  "method": "GET",
+			  "timeout": 0,
+			  "headers": {
+			    "Authorization": "Bearer " + window.localStorage.getItem("token"),
+			  },
+			};
+
+			$.ajax(settings2).done(function (response) {
+			  console.log(response);
+			  $("#id").val(response.id);
+			  $("#naziv").val(response.naziv);
+			  $("#adresa").val(response.adresa);
+			  $("#grad").val(response.grad);
+			  $("#opis").val(response.opis);
+			  response.radnoVreme.forEach((elem) => {
+			  	$(".dan").each(function(){
+			  		if($(this).find(".dan").val() == elem.dan){
+			  			let satOd = parseInt(elem.od) / 60;
+				  		let minOd = parseInt(elem.od) % 60;
+				  		let satDo = parseInt(elem.do) / 60;
+				  		let minDo = parseInt(elem.do) % 60;
+				  		$(this).find(".danSatOd").val(Math.floor(satOd));
+				  		$(this).find(".danMinOd").val(minOd);
+				  		$(this).find(".danSatDo").val(Math.floor(satDo));
+				  		$(this).find(".danMinOd").val(minDo);
+				  		$(this).find(".danSatDo").prop('disabled', false);
+				  		$(this).find(".danMinOd").prop('disabled', false);
+
+			  		}
+			  	});
+			  });
+			});
+
+			$("form").on("submit", function(e){
+				e.preventDefault();
+
+				let radniDani = "[\n";
+
+				$(".dan").each(function(){
+					let satOd = $(this).find(".danSatOd");
+					let minOd = $(this).find(".danMinOd");
+					if(satOd.val() || minOd.val()){
+						let satDo = $(this).find(".danSatDo");
+						let minDo = $(this).find(".danMinDo");
+						let satiOd = parseInt(satOd.val()) * 60 + parseInt(minOd.val());
+						let satiDo = parseInt(satDo.val()) * 60 + parseInt(minDo.val());
+
+						radniDani += '\t{\n\t\t"dan":' + $(this).find(".dan").val() + ',\n\t\t"od":' + satiOd + ',\n\t\t"do":' + satiDo + '\n\t}\n';
+					}
+				});
+				radniDani += "]";
+				
+				var form = new FormData();
+				form.append("name", $("#naziv").val());
+				form.append("address", $("#adresa").val());
+				form.append("city", $("#grad").val());
+				form.append("description", $("#opis").val());
+				form.append("workingHours", radniDani);
+				form.append("apitoken", $('meta[name="apitoken"]').attr('content'));
+
+				var settings = {
+				  "url": "https://vsis.mef.edu.rs/projekat/ulaznice/public_html/api/lokacija",
+				  "method": "PATCH",
+				  "timeout": 0,
+				  "headers": {
+				    "Accept": "application/json",
+				    "Authorization": "Bearer " + window.localStorage.getItem("token"),
+				  },
+				  "processData": false,
+				  "mimeType": "multipart/form-data",
+				  "contentType": false,
+				  "data": form
+				};
+
+				$.ajax(settings).done(function (response) {
+				  console.log(response);
+				});
+			});
+			
+				$(".dan").each(function(){
+					let satDo = $(this).find(".danSatDo");
+					let minDo = $(this).find(".danMinDo");
+					$(this).find(".danSatOd").on("blur", function(e){
+						if($(this).val()){
+							satDo.prop('disabled', false);
+							minDo.prop('disabled', false);
+						}
+						else{
+							satDo.prop('disabled', true);
+							minDo.prop('disabled', true);
+						}
+					});
+					$(this).find(".danMinOd").on("blur", function(e){
+						if($(this).val()){
+							satDo.prop('disabled', false);
+							minDo.prop('disabled', false);
+						}
+						else{
+							satDo.prop('disabled', true);
+							minDo.prop('disabled', true);
+						}
+					});
+				});
+		});
+	</script>
+</head>
+<body>
+	<form id="novaLokacija">
+		<input type="text" id="id" hidden>
+		<label>Naziv</label><br>
+		<input type="text" name="naziv" id="naziv" required><br>
+		<label>Adresa</label><br>
+		<input type="text" name="adresa" id="adresa" required><br>
+		<label>Grad</label><br>
+		<input type="text" name="grad" id="grad" required><br>
+		<label>Opis</label><br>
+		<input type="textarea" name="opis" id="opis"><br>
+		<label>Radno vreme</label><br>
+		<!--id="ponSatOd" id="ponMinOd" id="ponSatDo" id="ponMinDo"-->
+		<p class="dan">
+		<label>Ponedeljak</label><br>
+		<input type="number" class="dan" id="pon" value="1" hidden>
+		<label>Od</label>
+		<input type="number" class="danSatOd" placeholder="Sat"> 
+		<input type="number" class="danMinOd" placeholder="Minut"> 
+		<label>Do</label>
+		<input type="number" class="danSatDo" placeholder="Sat" disabled> 
+		<input type="number" class="danMinDo" placeholder="Minut" disabled>
+		</p>
+		<p class="dan">
+		<label>Utorak</label><br>
+		<input type="number" class="dan" id="uto" value="2" hidden>
+		<label>Od</label>
+		<input type="number" class="danSatOd" placeholder="Sat"> 
+		<input type="number" class="danMinOd" placeholder="Minut"> 
+		<label>Do</label>
+		<input type="number" class="danSatDo" placeholder="Sat" disabled> 
+		<input type="number" class="danMinDo" placeholder="Minut" disabled>
+		</p>
+		<p class="dan">
+		<label>Sreda</label><br>
+		<input type="number" class="dan" id="sre" value="3" hidden>
+		<label>Od</label>
+		<input type="number" class="danSatOd" placeholder="Sat"> 
+		<input type="number" class="danMinOd" placeholder="Minut"> 
+		<label>Do</label>
+		<input type="number" class="danSatDo" placeholder="Sat" disabled> 
+		<input type="number" class="danMinDo" placeholder="Minut" disabled>
+		</p>
+		<p class="dan">
+		<label>Četvrtak</label><br>
+		<input type="number" class="dan" id="cet" value="4" hidden>
+		<label>Od</label>
+		<input type="number" class="danSatOd" placeholder="Sat"> 
+		<input type="number" class="danMinOd" placeholder="Minut"> 
+		<label>Do</label>
+		<input type="number" class="danSatDo" placeholder="Sat" disabled> 
+		<input type="number" class="danMinDo" placeholder="Minut" disabled>
+		</p>
+		<p class="dan">
+		<label>Petak</label><br>
+		<input type="number" class="dan" id="pet" value="5" hidden>
+		<label>Od</label>
+		<input type="number" class="danSatOd" placeholder="Sat"> 
+		<input type="number" class="danMinOd" placeholder="Minut"> 
+		<label>Do</label>
+		<input type="number" class="danSatDo" placeholder="Sat" disabled> 
+		<input type="number" class="danMinDo" placeholder="Minut" disabled>
+		</p>
+		<p class="dan">
+		<label>Subota</label><br>
+		<input type="number" class="dan" id="sub" value="6" hidden>
+		<label>Od</label>
+		<input type="number" class="danSatOd" placeholder="Sat"> 
+		<input type="number" class="danMinOd" placeholder="Minut"> 
+		<label>Do</label>
+		<input type="number" class="danSatDo" placeholder="Sat" disabled> 
+		<input type="number" class="danMinDo" placeholder="Minut" disabled>
+		</p>
+		<p class="dan">
+		<label>Nedelja</label><br>
+		<input type="number" class="dan" id="ned" value="7" hidden>
+		<label>Od</label>
+		<input type="number" class="danSatOd" placeholder="Sat"> 
+		<input type="number" class="danMinOd" placeholder="Minut"> 
+		<label>Do</label>
+		<input type="number" class="danSatDo" placeholder="Sat" disabled> 
+		<input type="number" class="danMinDo" placeholder="Minut" disabled>
+		</p>
+		<input type="submit" value="Snimi">
+	</form>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="apitoken" content="2ptg2MzaO1Aa6p1ud6Ne3HNagileDDMFSIq7Jjj1FdTYWZTHKZjKJrS78KasSKWMLLFLPRDOqwxSlw3WGXKO1fB13G">
+	<title>Lista Korisnika</title>
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+	<script>
+		$(function(){
+			var settings = {
+			  "url": "https://vsis.mef.edu.rs/projekat/ulaznice/public_html/api/korisnik?apitoken=" + $('meta[name="apitoken"]').attr('content'),
+			  "method": "GET",
+			  "timeout": 0,
+			  "headers": {
+			    "Authorization": "Bearer " + window.localStorage.getItem("token"),
+			  },
+			};
+
+			$.ajax(settings).done(function (response) {
+			  let tbody = $("tbody");
+			  response.forEach((element) => {
+			  	if(window.localStorage.getItem("korisnici")){
+			  		if(window.localStorage.getItem("korisnici") == element.uloga.id){
+			  			let tr = $("<tr></tr>");
+					  	let izmeni = $("<button>Izmeni</button>");
+					  	let izbrisi = $("<button>Obriši</button>");
+					  	let td = $("<td></td");
+					  	izmeni.on("click", function(e){
+					  		window.localStorage.setItem("korisnik", element.id);
+			  				window.location.assign("korisnik.html");
+					  	});
+					  	izbrisi.on("click", function(e){
+					  		/*
+					  		var form = new FormData();
+							var settings = {
+							  "url": "https://vsis.mef.edu.rs/projekat/ulaznice/public_html/api/korisnik/" + element.id + "?apitoken=" + $('meta[name="apitoken"]').attr('content'),
+							  "method": "DELETE",
+							  "timeout": 0,
+							  "headers": {
+							    "Accept": "application/json",
+							    "Authorization": "Bearer " + window.localStorage.getItem("token"),
+							  },
+							  "processData": false,
+							  "mimeType": "multipart/form-data",
+							  "contentType": false,
+							  "data": form
+							};
+
+							$.ajax(settings).done(function (response) {
+							  console.log(response);
+							});
+							*/
+					  	});
+					  	td.append(izmeni);
+					  	td.append("<br>");
+					  	td.append(izbrisi);
+					  	tr.append("<td>" + element.id + "</td><td>" + element.imePrezime + "</td><td>" + element.email + "</td><td>" + (element.telefon?element.telefon:"/") + "</td><td>" + (element.lokacija?element.lokacija.naziv:"/") + "</td><td>" + element.uloga.naziv + "</td><td>" + (element.dogadjaji?element.dogadjaji.naziv:"/") + "</td><td>" + (element.ulaznice?element.ulaznice:"/") + "</td>");
+					  	tr.append(td);
+					  	tbody.append(tr);
+			  		}
+			  	}
+			  	else{
+			  	let tr = $("<tr></tr>");
+			  	let izmeni = $("<button>Izmeni</button>");
+			  	let izbrisi = $("<button>Obriši</button>");
+			  	let td = $("<td></td");
+			  	izmeni.on("click", function(e){
+			  		window.localStorage.setItem("korisnik", element.id);
+			  		window.location.assign("korisnik.html");
+			  	});
+			  	izbrisi.on("click", function(e){
+			  		/*
+			  		var form = new FormData();
+					var settings = {
+					  "url": "https://vsis.mef.edu.rs/projekat/ulaznice/public_html/api/korisnik/" + element.id + "?apitoken=" + $('meta[name="apitoken"]').attr('content'),
+					  "method": "DELETE",
+					  "timeout": 0,
+					  "headers": {
+					    "Accept": "application/json",
+					    "Authorization": "Bearer " + window.localStorage.getItem("token"),
+					  },
+					  "processData": false,
+					  "mimeType": "multipart/form-data",
+					  "contentType": false,
+					  "data": form
+					};
+
+					$.ajax(settings).done(function (response) {
+					  console.log(response);
+					});
+					*/
+			  	});
+			  	td.append(izmeni);
+			  	td.append("<br>");
+			  	td.append(izbrisi);
+			  	tr.append("<td>" + element.id + "</td><td>" + element.imePrezime + "</td><td>" + element.email + "</td><td>" + (element.telefon?element.telefon:"/") + "</td><td>" + (element.lokacija?element.lokacija.naziv:"/") + "</td><td>" + element.uloga.naziv + "</td><td>" + (element.dogadjaji?element.dogadjaji.naziv:"/") + "</td><td>" + (element.ulaznice?element.ulaznice:"/") + "</td>");
+			  	tr.append(td);
+			  	tbody.append(tr);
+			  }
+			  });
+			});
+
+		});
+	</script>
+	<link rel="stylesheet" href="liste.css">
+</head>
+<body>
+<table>
+		<thead>
+			<tr>
+				<th>id</th>
+				<th>Ime i Prezime</th>
+				<th>Email</th>
+				<th>Telefon</th>
+				<th>Lokacija</th>
+				<th>Uloga</th>
+				<th>Događaji</th>
+				<th>Ulaznice</th>
+				<th>Akcija</th>
+			</tr>
+		</thead>
+		<tbody>
+		</tbody>
+	</table>
+</body>
+</html>
